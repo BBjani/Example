@@ -15,6 +15,4 @@ public interface DbService {
     void insertRow(PreparedStatement stmt) throws InfrastructureException, DuplicateException;
 
     void deleteRow(PreparedStatement stmt) throws InfrastructureException;
-
-//    void close() throws InfrastructureException;
 }
