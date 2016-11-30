@@ -28,6 +28,9 @@ public class Person {
     @XmlElement(name = "address")
     private final Address address;
 
+    /**
+     * Constructor of Person class
+     */
     public Person() {
         this.address = new Address();
     }

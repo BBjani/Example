@@ -11,6 +11,10 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
+/**
+ *
+ *
+ */
 public class MysqlService implements DbService {
 
     private static MysqlService INSTANCE;
@@ -27,6 +31,10 @@ public class MysqlService implements DbService {
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public static synchronized MysqlService getInstance() {
         if (INSTANCE == null) {
             INSTANCE = new MysqlService();
@@ -34,6 +42,11 @@ public class MysqlService implements DbService {
         return INSTANCE;
     }
 
+    /**
+     *
+     * @return
+     * @throws InfrastructureException
+     */
     @Override
     public Connection getConnection() throws InfrastructureException {
         try {
@@ -43,6 +56,12 @@ public class MysqlService implements DbService {
         }
     }
 
+    /**
+     *
+     * @param stmt
+     * @return
+     * @throws InfrastructureException
+     */
     @Override
     public ResultSet query(final PreparedStatement stmt) throws InfrastructureException {
         try {
@@ -52,6 +71,12 @@ public class MysqlService implements DbService {
         }
     }
 
+    /**
+     *
+     * @param stmt
+     * @throws InfrastructureException
+     * @throws DuplicateException
+     */
     @Override
     public void insertRow(final PreparedStatement stmt) throws InfrastructureException, DuplicateException {
         try {
@@ -65,8 +90,13 @@ public class MysqlService implements DbService {
         }
     }
 
+    /**
+     *
+     * @param stmt
+     * @throws InfrastructureException
+     */
     @Override
-    public void deleteRow(PreparedStatement stmt) throws InfrastructureException {
+    public void deleteRow(final PreparedStatement stmt) throws InfrastructureException {
         try {
             stmt.executeUpdate();
         } catch (SQLException se) {

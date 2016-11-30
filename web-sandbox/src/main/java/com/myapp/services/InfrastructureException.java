@@ -2,14 +2,27 @@ package com.myapp.services;
 
 import javax.xml.ws.WebFault;
 
+/**
+ *
+ *
+ */
 @WebFault(name = "InfrastructureException")
 public class InfrastructureException extends Exception {
 
-    public InfrastructureException(String message) {
+    /**
+     *
+     * @param message
+     */
+    public InfrastructureException(final String message) {
         super(message);
     }
 
-    public InfrastructureException(String message, Throwable cause) {
+    /**
+     *
+     * @param message
+     * @param cause
+     */
+    public InfrastructureException(final String message, final Throwable cause) {
         super(message, cause);
     }
 }

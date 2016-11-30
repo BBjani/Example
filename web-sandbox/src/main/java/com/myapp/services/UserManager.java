@@ -3,15 +3,49 @@ package com.myapp.services;
 import com.myapp.model.Person;
 import java.util.List;
 
+/**
+ *
+ *
+ */
 public interface UserManager {
 
-    void createPerson(Person person) throws ValidationException, InfrastructureException, DuplicateException;
+    /**
+     *
+     * @param person
+     * @throws ValidationException
+     * @throws InfrastructureException
+     * @throws DuplicateException
+     */
+    void createPerson(final Person person) throws ValidationException, InfrastructureException, DuplicateException;
 
+    /**
+     *
+     * @return
+     * @throws InfrastructureException
+     */
     List<Person> getPeople() throws InfrastructureException;
 
-    Person getPersonById(Integer id) throws InfrastructureException;
+    /**
+     *
+     * @param id
+     * @return
+     * @throws InfrastructureException
+     */
+    Person getPersonById(final Integer id) throws InfrastructureException;
 
-    void updatePerson(Person person) throws ValidationException, InfrastructureException, DuplicateException;
+    /**
+     *
+     * @param person
+     * @throws ValidationException
+     * @throws InfrastructureException
+     * @throws DuplicateException
+     */
+    void updatePerson(final Person person) throws ValidationException, InfrastructureException, DuplicateException;
 
-    void deletePerson(Integer id) throws InfrastructureException;
+    /**
+     *
+     * @param id
+     * @throws InfrastructureException
+     */
+    void deletePerson(final Integer id) throws InfrastructureException;
 }

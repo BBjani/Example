@@ -1,31 +1,59 @@
 package com.myapp.services;
 
+/**
+ *
+ *
+ */
 public class ValidationExceptionBean {
 
     private String text;
     private Integer number;
 
-    public ValidationExceptionBean(String text) {
+    /**
+     *
+     * @param text
+     */
+    public ValidationExceptionBean(final String text) {
         this.text = text;
     }
 
-    public ValidationExceptionBean(Integer number) {
+    /**
+     *
+     * @param number
+     */
+    public ValidationExceptionBean(final Integer number) {
         this.number = number;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getText() {
         return text;
     }
 
-    public void setText(String text) {
+    /**
+     *
+     * @param text
+     */
+    public void setText(final String text) {
         this.text = text;
     }
 
+    /**
+     *
+     * @return
+     */
     public Integer getNumber() {
         return number;
     }
 
-    public void setNumber(Integer number) {
+    /**
+     *
+     * @param number
+     */
+    public void setNumber(final Integer number) {
         this.number = number;
     }
 }

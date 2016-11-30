@@ -9,6 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ *
+ *
+ */
 @Slf4j
 public class UserManagerService implements UserManager {
 
@@ -19,6 +23,10 @@ public class UserManagerService implements UserManager {
         this.mysqlService = MysqlService.getInstance();
     }
 
+    /**
+     *
+     * @return
+     */
     public static synchronized UserManagerService getInstance() {
         if (INSTANCE == null) {
             INSTANCE = new UserManagerService();
@@ -26,7 +34,7 @@ public class UserManagerService implements UserManager {
         return INSTANCE;
     }
 
-    private void isValidUser(Person person) throws ValidationException {
+    private void isValidUser(final Person person) throws ValidationException {
         if (null == person.getName() || null == person.getEmail() || null == person.getAddress().getCountry()
                 || null == person.getAddress().getPostalcode() || null == person.getAddress().getCity() || null == person.getAddress().getStreet()) {
             throw new ValidationException("Name, email and address are required", new ValidationExceptionBean(person.toString()));
@@ -55,36 +63,44 @@ public class UserManagerService implements UserManager {
         }
     }
 
+    /**
+     *
+     * @param person
+     * @throws ValidationException
+     * @throws InfrastructureException
+     */
     @Override
-    public void createPerson(Person person) throws ValidationException, InfrastructureException {
+    public void createPerson(final Person person) throws ValidationException, InfrastructureException {
         try {
             isValidUser(person);
-            PreparedStatement stmt;
             String insert = "insert into address (Country, Postalcode, City, Street) values (?,?,?,?);";
-            stmt = mysqlService.getConnection().prepareStatement(insert);
-            stmt.setString(1, person.getAddress().getCountry());
-            stmt.setInt(2, person.getAddress().getPostalcode());
-            stmt.setString(3, person.getAddress().getCity());
-            stmt.setString(4, person.getAddress().getStreet());
-            mysqlService.insertRow(stmt);
+            try (final PreparedStatement stmt = mysqlService.getConnection().prepareStatement(insert);) {
+                stmt.setString(1, person.getAddress().getCountry());
+                stmt.setInt(2, person.getAddress().getPostalcode());
+                stmt.setString(3, person.getAddress().getCity());
+                stmt.setString(4, person.getAddress().getStreet());
+                mysqlService.insertRow(stmt);
+            }
+            Integer id = null;
             final String select = "select A_Id from address where Country = ? and "
                     + "Postalcode = ? and City = ? and Street = ?;";
-            stmt = mysqlService.getConnection().prepareStatement(select);
-            stmt.setString(1, person.getAddress().getCountry());
-            stmt.setInt(2, person.getAddress().getPostalcode());
-            stmt.setString(3, person.getAddress().getCity());
-            stmt.setString(4, person.getAddress().getStreet());
-            Integer id = null;
-            final ResultSet rs = mysqlService.query(stmt);
-            while (rs.next()) {
-                id = rs.getInt("A_Id");
+            try (final PreparedStatement stmt = mysqlService.getConnection().prepareStatement(select);) {
+                stmt.setString(1, person.getAddress().getCountry());
+                stmt.setInt(2, person.getAddress().getPostalcode());
+                stmt.setString(3, person.getAddress().getCity());
+                stmt.setString(4, person.getAddress().getStreet());
+                final ResultSet rs = mysqlService.query(stmt);
+                while (rs.next()) {
+                    id = rs.getInt("A_Id");
+                }
             }
             insert = "insert into users (A_Id, Name, Email) values (?,?,?);";
-            stmt = mysqlService.getConnection().prepareStatement(insert);
-            stmt.setInt(1, id);
-            stmt.setString(2, person.getName());
-            stmt.setString(3, person.getEmail());
-            mysqlService.insertRow(stmt);
+            try (final PreparedStatement stmt = mysqlService.getConnection().prepareStatement(insert)) {
+                stmt.setInt(1, id);
+                stmt.setString(2, person.getName());
+                stmt.setString(3, person.getEmail());
+                mysqlService.insertRow(stmt);
+            }
             if (log.isDebugEnabled()) {
                 log.debug(person.getName() + " (" + person.getId() + ") " + "created");
             }
@@ -99,77 +115,93 @@ public class UserManagerService implements UserManager {
         return new Person();
     }
 
+    /**
+     *
+     * @return
+     * @throws InfrastructureException
+     */
     @Override
     public List<Person> getPeople() throws InfrastructureException {
         List<Person> people;
         try {
-            PreparedStatement stmt;
-            final String select = "select u.U_Id, u.Name, u.Email, "
-                    + "a.Country, a.Postalcode, a.City, a.Street from users u, "
-                    + "address a where u.A_Id = a.A_ID;";
-            stmt = mysqlService.getConnection().prepareStatement(select);
-            final ResultSet rs = mysqlService.query(stmt);
-            people = new ArrayList();
-            while (rs.next()) {
-                final Person person = newPerson();
-                person.setId(rs.getInt("U_Id"));
-                person.setName(rs.getString("Name"));
-                person.setEmail(rs.getString("Email"));
-                person.getAddress().setCountry(rs.getString("Country"));
-                person.getAddress().setPostalcode(rs.getInt("Postalcode"));
-                person.getAddress().setCity(rs.getString("City"));
-                person.getAddress().setStreet(rs.getString("Street"));
-                people.add(person);
+            final String select = "select u.U_Id, u.Name, u.Email, a.Country, a.Postalcode, a.City, a.Street from "
+                    + "users u, address a where u.A_Id = a.A_ID;";
+            try (final PreparedStatement stmt = mysqlService.getConnection().prepareStatement(select)) {
+                final ResultSet rs = mysqlService.query(stmt);
+                people = new ArrayList();
+                while (rs.next()) {
+                    final Person person = newPerson();
+                    person.setId(rs.getInt("U_Id"));
+                    person.setName(rs.getString("Name"));
+                    person.setEmail(rs.getString("Email"));
+                    person.getAddress().setCountry(rs.getString("Country"));
+                    person.getAddress().setPostalcode(rs.getInt("Postalcode"));
+                    person.getAddress().setCity(rs.getString("City"));
+                    person.getAddress().setStreet(rs.getString("Street"));
+                    people.add(person);
+                }
+                return people;
             }
-            return people;
         } catch (SQLException se) {
             throw new InfrastructureException(se.getMessage(), se);
         }
     }
 
+    /**
+     *
+     * @param id
+     * @return
+     * @throws InfrastructureException
+     */
     @Override
-    public Person getPersonById(Integer id) throws InfrastructureException {
-        Person person;
+    public Person getPersonById(final Integer id) throws InfrastructureException {
+        final Person person;
         try {
-            PreparedStatement stmt;
             final String select = "select u.U_Id, u.Name, u.Email, a.Country, a.Postalcode, a.City, a.Street "
                     + "from users u, address a where u.A_Id = a.A_ID and u.U_Id = ?;";
-            stmt = mysqlService.getConnection().prepareStatement(select);
-            stmt.setInt(1, id);
-            final ResultSet rs = mysqlService.query(stmt);
-            person = new Person();
-            while (rs.next()) {
-                person.setId(rs.getInt("U_Id"));
-                person.setName(rs.getString("Name"));
-                person.setEmail(rs.getString("Email"));
-                person.getAddress().setCountry(rs.getString("Country"));
-                person.getAddress().setPostalcode(rs.getInt("Postalcode"));
-                person.getAddress().setCity(rs.getString("City"));
-                person.getAddress().setStreet(rs.getString("Street"));
+            try (final PreparedStatement stmt = mysqlService.getConnection().prepareStatement(select)) {
+                stmt.setInt(1, id);
+                final ResultSet rs = mysqlService.query(stmt);
+                person = newPerson();
+                while (rs.next()) {
+                    person.setId(rs.getInt("U_Id"));
+                    person.setName(rs.getString("Name"));
+                    person.setEmail(rs.getString("Email"));
+                    person.getAddress().setCountry(rs.getString("Country"));
+                    person.getAddress().setPostalcode(rs.getInt("Postalcode"));
+                    person.getAddress().setCity(rs.getString("City"));
+                    person.getAddress().setStreet(rs.getString("Street"));
+                }
+                return person;
             }
-            return person;
         } catch (SQLException se) {
             throw new InfrastructureException(se.getMessage(), se);
         }
     }
 
+    /**
+     *
+     * @param person
+     * @throws ValidationException
+     * @throws InfrastructureException
+     */
     @Override
-    public void updatePerson(Person person) throws ValidationException, InfrastructureException {
-        isValidUser(person);
+    public void updatePerson(final Person person) throws ValidationException, InfrastructureException {
         try {
-            PreparedStatement stmt;
+            isValidUser(person);
             final String update = "update users, address set users.Name = ?, users.Email = ?,"
                     + "address.Country = ?, address.Postalcode = ?, address.City = ?, address.Street = ?"
                     + "where users.U_Id = ? and users.A_Id = address.A_Id;";
-            stmt = mysqlService.getConnection().prepareStatement(update);
-            stmt.setString(1, person.getName());
-            stmt.setString(2, person.getEmail());
-            stmt.setString(3, person.getAddress().getCountry());
-            stmt.setInt(4, person.getAddress().getPostalcode());
-            stmt.setString(5, person.getAddress().getCity());
-            stmt.setString(6, person.getAddress().getStreet());
-            stmt.setInt(7, person.getId());
-            mysqlService.insertRow(stmt);
+            try (final PreparedStatement stmt = mysqlService.getConnection().prepareStatement(update)) {
+                stmt.setString(1, person.getName());
+                stmt.setString(2, person.getEmail());
+                stmt.setString(3, person.getAddress().getCountry());
+                stmt.setInt(4, person.getAddress().getPostalcode());
+                stmt.setString(5, person.getAddress().getCity());
+                stmt.setString(6, person.getAddress().getStreet());
+                stmt.setInt(7, person.getId());
+                mysqlService.insertRow(stmt);
+            }
             if (log.isDebugEnabled()) {
                 log.info("(" + person.getId() + ") " + "updated");
             }
@@ -180,18 +212,24 @@ public class UserManagerService implements UserManager {
         }
     }
 
+    /**
+     *
+     * @param id
+     * @throws InfrastructureException
+     */
     @Override
-    public void deletePerson(Integer id) throws InfrastructureException {
+    public void deletePerson(final Integer id) throws InfrastructureException {
         try {
-            PreparedStatement stmt;
             String delete = "delete from users where U_Id = ?;";
-            stmt = mysqlService.getConnection().prepareStatement(delete);
-            stmt.setInt(1, id);
-            mysqlService.deleteRow(stmt);
+            try (final PreparedStatement stmt = mysqlService.getConnection().prepareStatement(delete)) {
+                stmt.setInt(1, id);
+                mysqlService.deleteRow(stmt);
+            }
             delete = "delete from address where A_Id = ?;";
-            stmt = mysqlService.getConnection().prepareStatement(delete);
-            stmt.setInt(1, id);
-            mysqlService.deleteRow(stmt);
+            try (final PreparedStatement stmt = mysqlService.getConnection().prepareStatement(delete)) {
+                stmt.setInt(1, id);
+                mysqlService.deleteRow(stmt);
+            }
         } catch (SQLException se) {
             throw new InfrastructureException(se.getMessage(), se);
         }

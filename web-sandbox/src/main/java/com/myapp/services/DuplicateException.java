@@ -2,14 +2,27 @@ package com.myapp.services;
 
 import javax.xml.ws.WebFault;
 
+/**
+ *
+ *
+ */
 @WebFault(name = "DuplicateException")
 public class DuplicateException extends Exception {
 
-    public DuplicateException(String message) {
+    /**
+     *
+     * @param message
+     */
+    public DuplicateException(final String message) {
         super(message);
     }
 
-    public DuplicateException(String message, Throwable cause) {
+    /**
+     *
+     * @param message
+     * @param cause
+     */
+    public DuplicateException(final String message, final Throwable cause) {
         super(message, cause);
     }
 }
